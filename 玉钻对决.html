@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>玉钻对决：东西方权力美学匹配赛 | 沉浸式文化游戏</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(145deg, #e9e5df 0%, #d6d0c6 100%);
+            min-height: 100vh;
+            padding: 30px 20px;
+        }
+
+        .game-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(0px);
+            border-radius: 2rem;
+            padding: 2rem 1.8rem;
+            box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.35), inset 0 1px 1px rgba(255,255,255,0.6);
+            transition: all 0.2s;
+        }
+
+        .game-title {
+            text-align: center;
+            font-size: 1.9rem;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, #b78c5a, #4a6a3c, #2c3e2b);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        .game-desc {
+            text-align: center;
+            color: #4e3e2e;
+            border-bottom: 1px solid #e2cfb3;
+            padding-bottom: 1rem;
+            margin-bottom: 1.8rem;
+            font-size: 1rem;
+        }
+
+        /* 关卡通用 */
+        .level {
+            display: none;
+            animation: fadeScale 0.35s ease-out;
+        }
+        .level.active {
+            display: block;
+        }
+
+        @keyframes fadeScale {
+            from { opacity: 0; transform: scale(0.97); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .level-title {
+            font-size: 1.6rem;
+            font-weight: 600;
+            border-left: 6px solid #c28a4e;
+            padding-left: 18px;
+            margin-bottom: 1rem;
+            color: #2c2b26;
+        }
+
+        /* 匹配区布局 */
+        .match-layout {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            justify-content: center;
+            margin: 1.8rem 0;
+        }
+
+        .card-panel {
+            flex: 1;
+            min-width: 220px;
+            background: #fefaf5;
+            border-radius: 1.5rem;
+            padding: 1rem 0.8rem;
+            box-shadow: 0 8px 18px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+        }
+
+        .panel-header {
+            text-align: center;
+            font-weight: 700;
+            padding: 0.6rem;
+            border-radius: 2rem;
+            margin-bottom: 1.2rem;
+            font-size: 1.2rem;
+        }
+
+        .jade-header {
+            background: #7c5e3a;
+            color: #fef0da;
+            box-shadow: inset 0 1px 3px rgba(255,255,200,0.5), 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .diamond-header {
+            background: #cfd9e6;
+            color: #1e2a36;
+            box-shadow: inset 0 1px 2px white, 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .wait-header {
+            background: #e9dfcf;
+            color: #5a3f2c;
+        }
+
+        .item-list {
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .item {
+            background: white;
+            padding: 12px 8px;
+            border-radius: 60px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border: 1px solid #eedbc8;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+        }
+        .item:hover {
+            background: #f5ede2;
+            transform: translateY(-2px);
+            border-color: #c4a27a;
+        }
+        .item.correct {
+            background: #bddb9b;
+            border-color: #5f8b3e;
+            color: #2c4d1c;
+            cursor: default;
+            box-shadow: inset 0 0 0 1px #e9ffc2;
+        }
+        .item.wrong {
+            background: #f4c2c2;
+            text-decoration: line-through;
+        }
+
+        .empty-slot {
+            background: #f3ede5;
+            border: 2px dashed #cbb895;
+            border-radius: 60px;
+            padding: 12px;
+            text-align: center;
+            color: #a68966;
+            font-style: italic;
+        }
+
+        /* 按钮 */
+        .btn-next {
+            background: #5e6e4a;
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            font-size: 1.1rem;
+            border-radius: 40px;
+            cursor: pointer;
+            display: block;
+            margin: 20px auto 0;
+            transition: 0.2s;
+            font-weight: 600;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+        }
+        .btn-next:hover {
+            background: #3f5430;
+            transform: scale(1.02);
+        }
+
+        /* 关卡2 区分区 */
+        .distinguish-card {
+            background: #fef6ea;
+            border-radius: 2rem;
+            padding: 1.5rem;
+            text-align: center;
+            margin: 1rem 0;
+            box-shadow: 0 12px 24px -12px rgba(0,0,0,0.2);
+        }
+        .object-img {
+            width: 100%;
+            max-width: 280px;
+            margin: 20px auto;
+            border-radius: 32px;
+            font-weight: 600;
+            padding: 2rem 1rem;
+            transition: 0.2s;
+            font-size: 1.2rem;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .btn-choice {
+            padding: 12px 32px;
+            border: none;
+            border-radius: 60px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.2s;
+            background: #e6ddcf;
+            color: #3a2c1e;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .btn-jade-choice {
+            background: #b3844b;
+            color: white;
+            border-bottom: 3px solid #624a2c;
+        }
+        .btn-diamond-choice {
+            background: #b0c2d9;
+            color: #1e2f3c;
+            border-bottom: 3px solid #7a8ca0;
+        }
+        .btn-choice:active {
+            transform: translateY(1px);
+        }
+        .tip-area {
+            background: #efe2cf;
+            border-radius: 40px;
+            padding: 12px;
+            font-weight: 500;
+            margin-top: 10px;
+        }
+
+        /* 结果 */
+        .result {
+            display: none;
+            text-align: center;
+            padding: 1rem 0;
+            background: #fcf7ef;
+            border-radius: 2rem;
+        }
+        .result-title {
+            font-size: 2rem;
+            color: #7c5c3c;
+        }
+        .insight-badge {
+            background: #e9dccd;
+            padding: 0.8rem;
+            border-radius: 60px;
+            display: inline-block;
+            margin-top: 1rem;
+        }
+
+        footer {
+            font-size: 0.75rem;
+            text-align: center;
+            margin-top: 2rem;
+            color: #7b6b58;
+        }
+        @media (max-width: 700px) {
+            .game-container { padding: 1.2rem; }
+            .item { font-size: 0.9rem; }
+        }
+        .progress-badge {
+            font-size: 0.8rem;
+            background: #e1cfb5;
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <h1 class="game-title">⚜️ 玉钻对决 ⚜️<br><span style="font-size: 0.9rem;">东西方权力美学匹配赛</span></h1>
+    <p class="game-desc">温润礼制 · 璀璨霸权 —— 通过双关卡沉浸对决，洞悉权力符号的基因</p>
+
+    <!-- 关卡1 属性匹配 -->
+    <div class="level level-1 active" id="level1">
+        <h2 class="level-title">🗝️ 关卡一 · 权力隐喻匹配</h2>
+        <p style="text-align: center; margin-bottom: 12px; background: #f3efe8; border-radius: 30px; padding: 6px; font-size: 0.9rem;">🎯 点击下方「待匹配属性」归位到对应的权力宝石阵营</p>
+        <div class="match-layout">
+            <!-- 玉玺阵营 -->
+            <div class="card-panel">
+                <div class="panel-header jade-header">🐉 青玉交龙纽「储秀宫珍藏」玺<br><span style="font-size: 0.8rem;">东方 · 礼制玉魂</span></div>
+                <div class="item-list" id="jadeSlotList"></div>
+            </div>
+            <!-- 待匹配池 -->
+            <div class="card-panel">
+                <div class="panel-header wait-header">✨ 待匹配属性池 ✨</div>
+                <div class="item-list" id="waitPool"></div>
+            </div>
+            <!-- 皇冠阵营 -->
+            <div class="card-panel">
+                <div class="panel-header diamond-header">👑 英国帝国皇冠<br><span style="font-size: 0.8rem;">西方 · 钻石霸权</span></div>
+                <div class="item-list" id="diamondSlotList"></div>
+            </div>
+        </div>
+        <button class="btn-next" id="nextToLevel2Btn" style="display: none;">✦ 开启第二关 · 快速甄别 ✦</button>
+    </div>
+
+    <!-- 关卡2 快速区分（多轮） -->
+    <div class="level level-2" id="level2">
+        <h2 class="level-title">⚡ 关卡二 · 权力符号辨识 ⚡</h2>
+        <div class="distinguish-card">
+            <div class="progress-badge" id="questionCounter">第 1 / 4 题</div>
+            <div id="objectDesc" class="object-desc" style="font-size: 1.1rem; font-weight: 500;">交龙纽、玉质随形、人文意趣</div>
+            <div id="dynamicObjectImg" class="object-img">玉·储秀宫玺特征</div>
+            <div class="btn-group">
+                <button class="btn-choice btn-jade-choice" id="chooseJadeBtn">🐉 青玉交龙纽玺</button>
+                <button class="btn-choice btn-diamond-choice" id="chooseDiamondBtn">💎 英国帝国皇冠</button>
+            </div>
+            <div id="distinguishTip" class="tip-area">✨ 根据器物特征，判断其权力美学归属 ✨</div>
+        </div>
+        <button class="btn-next" id="toResultBtn" style="display: none;">🏆 查看权力美学总结 🏆</button>
+    </div>
+
+    <!-- 结果页 + 深度总结 -->
+    <div class="result" id="resultSection">
+        <h2 class="result-title">🎉 对决完成 🎉</h2>
+        <p class="result-desc" id="finalScoreMsg">恭喜你完成玉与钻的权力美学挑战！</p>
+        <div style="background: #e6d8c6; padding: 1rem; border-radius: 1.5rem; margin: 1rem 0;">
+            <p style="font-weight: bold; font-size: 1.2rem;">📜 权力美学核心对照</p>
+            <p style="margin-top: 8px;">🟢 青玉交龙纽「储秀宫珍藏」玺 → <strong>温润内敛 · 礼制正统 · 文化合法性</strong> —— 以玉喻德，构建女性统治的东方神圣叙事。</p>
+            <p>🔵 英国帝国皇冠 → <strong>璀璨张扬 · 殖民霸权 · 物质奢华</strong> —— 钻石切割闪耀，象征大英帝国全球殖民实力与工业极致奢华。</p>
+            <p>✨ 东方权力符号重「材质德性」与「天道合法性」；西方权力符号重「视觉冲击」与「物质征服」✨</p>
+        </div>
+        <button class="restart-btn" id="restartGameBtn" style="background:#8b6946; padding:12px 32px; border-radius:40px; border:none; color:white; font-weight:bold; cursor:pointer;">🔄 重新挑战</button>
+    </div>
+    <footer>权力符号游戏 · 玉与钻的文明对话</footer>
+</div>
+
+<script>
+    // ---------- 核心数据 ----------
+    const JADE_PROPS = ["温润内敛", "礼制正统", "文化合法性"];
+    const DIAMOND_PROPS = ["璀璨张扬", "殖民霸权", "物质奢华"];
+
+    // 区分关卡题库 (丰富叙述与图像风格)
+    const distinguishQuestions = [
+        {
+            desc: "交龙纽、玉质随形、印文篆刻「储秀宫珍藏」，强调内廷礼制与天命所归。",
+            imgText: "🐉 青玉交龙纽「储秀宫珍藏」玺 · 温润人文",
+            bgClass: "jade-bg",
+            bgColor: "#c9ae8b",
+            textColor: "#2d2b1f",
+            answer: "jade"
+        },
+        {
+            desc: "多面切割钻石镶嵌，库里南二号钻石居中，极致闪耀象征日不落帝国全球霸权。",
+            imgText: "💎 英国帝国皇冠 · 璀璨切割与殖民荣耀",
+            bgColor: "#dbe4f0",
+            textColor: "#1f2c38",
+            answer: "diamond"
+        },
+        {
+            desc: "慈禧太后用以确立女性执政合法性的信物，融合儒家玉德传统与宫廷威仪。",
+            imgText: "🏮 储秀宫玺 · 女性统治正统性的权力符号",
+            bgColor: "#c2a072",
+            textColor: "#fff5e6",
+            answer: "jade"
+        },
+        {
+            desc: "1911年帝国皇冠制作完成，镶嵌2868颗钻石，象征殖民扩张与工业革命的物质巅峰。",
+            imgText: "👑 帝国皇冠 · 殖民霸权与奢华炫示",
+            bgColor: "#bfcfdf",
+            textColor: "#111",
+            answer: "diamond"
+        }
+    ];
+
+    // DOM 元素
+    const level1Div = document.getElementById('level1');
+    const level2Div = document.getElementById('level2');
+    const resultDiv = document.getElementById('resultSection');
+    const nextToLevel2Btn = document.getElementById('nextToLevel2Btn');
+    const toResultBtn = document.getElementById('toResultBtn');
+    const restartBtn = document.getElementById('restartGameBtn');
+
+    // 匹配区域
+    const jadeSlotList = document.getElementById('jadeSlotList');
+    const diamondSlotList = document.getElementById('diamondSlotList');
+    const waitPoolDiv = document.getElementById('waitPool');
+
+    // 区分关卡元素
+    const objectDescSpan = document.getElementById('objectDesc');
+    const dynamicImg = document.getElementById('dynamicObjectImg');
+    const chooseJadeBtn = document.getElementById('chooseJadeBtn');
+    const chooseDiamondBtn = document.getElementById('chooseDiamondBtn');
+    const distinguishTipSpan = document.getElementById('distinguishTip');
+    const questionCounterSpan = document.getElementById('questionCounter');
+
+    // 状态变量
+    let matchedJadeCount = 0;
+    let matchedDiamondCount = 0;
+    let currentQuestionIndex = 0;
+    let correctAnswersCount = 0;
+    let canAnswer = true;      // 避免重复点击快速连续跳题
+
+    // ---------- 辅助函数 ----------
+    function buildInitialUI() {
+        // 清空槽位
+        jadeSlotList.innerHTML = '';
+        diamondSlotList.innerHTML = '';
+        waitPoolDiv.innerHTML = '';
+
+        // 玉槽位显示空占位 (3个)
+        for (let i = 0; i < JADE_PROPS.length; i++) {
+            const emptyDiv = document.createElement('div');
+            emptyDiv.className = 'empty-slot';
+            emptyDiv.textContent = '⚪ 待匹配权力隐喻';
+            emptyDiv.setAttribute('data-slot-index', i);
+            jadeSlotList.appendChild(emptyDiv);
+        }
+        // 钻石槽位
+        for (let i = 0; i < DIAMOND_PROPS.length; i++) {
+            const emptyDiv = document.createElement('div');
+            emptyDiv.className = 'empty-slot';
+            emptyDiv.textContent = '◇ 待匹配权力隐喻';
+            emptyDiv.setAttribute('data-slot-index', i);
+            diamondSlotList.appendChild(emptyDiv);
+        }
+
+        // 待匹配属性随机顺序展示（保持交互丰富性）
+        const allProps = [...JADE_PROPS, ...DIAMOND_PROPS];
+        for (let i = allProps.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [allProps[i], allProps[j]] = [allProps[j], allProps[i]];
+        }
+        allProps.forEach(prop => {
+            const propItem = document.createElement('div');
+            propItem.className = 'item wait-item';
+            propItem.textContent = prop;
+            propItem.setAttribute('data-prop', prop);
+            propItem.addEventListener('click', (e) => {
+                e.stopPropagation();
+                handleMatchProp(propItem, prop);
+            });
+            waitPoolDiv.appendChild(propItem);
+        });
+    }
+
+    // 处理匹配
+    function handleMatchProp(element, prop) {
+        // 如果已经匹配完成关卡自动禁用点击？
+        if (matchedJadeCount === JADE_PROPS.length && matchedDiamondCount === DIAMOND_PROPS.length) return;
+        // 避免重复匹配已移除的
+        if (!element.parentNode) return;
+
+        if (JADE_PROPS.includes(prop)) {
+            // 匹配到玉玺阵营
+            const emptySlots = jadeSlotList.querySelectorAll('.empty-slot');
+            if (emptySlots.length === 0) return;
+            const firstEmpty = emptySlots[0];
+            // 创建匹配好的item
+            const matchedItem = document.createElement('div');
+            matchedItem.className = 'item correct';
+            matchedItem.textContent = prop;
+            // 替换占位符
+            jadeSlotList.replaceChild(matchedItem, firstEmpty);
+            matchedJadeCount++;
+            element.remove(); // 移除待匹配项
+        } 
+        else if (DIAMOND_PROPS.includes(prop)) {
+            const emptySlots = diamondSlotList.querySelectorAll('.empty-slot');
+            if (emptySlots.length === 0) return;
+            const firstEmpty = emptySlots[0];
+            const matchedItem = document.createElement('div');
+            matchedItem.className = 'item correct';
+            matchedItem.textContent = prop;
+            diamondSlotList.replaceChild(matchedItem, firstEmpty);
+            matchedDiamondCount++;
+            element.remove();
+        }
+
+        // 检查完成度
+        if (matchedJadeCount === JADE_PROPS.length && matchedDiamondCount === DIAMOND_PROPS.length) {
+            nextToLevel2Btn.style.display = 'block';
+            // 可添加完成动画提醒
+            const msgDiv = document.createElement('div');
+            msgDiv.textContent = '✅ 属性匹配完成！权力隐喻归位 ✅';
+            msgDiv.style.textAlign = 'center';
+            msgDiv.style.marginTop = '12px';
+            msgDiv.style.fontWeight = 'bold';
+            msgDiv.style.color = '#3f693b';
+            document.querySelector('.match-layout').after(msgDiv);
+            setTimeout(() => msgDiv.remove(), 2000);
+        }
+    }
+
+    // ---------- 关卡2 加载题目 ----------
+    function loadQuestion(index) {
+        if (index >= distinguishQuestions.length) {
+            // 所有题目答完，显示结果按钮
+            toResultBtn.style.display = 'block';
+            // 禁用按钮交互
+            chooseJadeBtn.disabled = true;
+            chooseDiamondBtn.disabled = true;
+            distinguishTipSpan.innerHTML = "🎉 已完成全部辨识，点击「查看结果」深入权力美学总结 🎉";
+            return;
+        }
+        const q = distinguishQuestions[index];
+        objectDescSpan.textContent = q.desc;
+        dynamicImg.style.backgroundColor = q.bgColor;
+        dynamicImg.style.color = q.textColor;
+        dynamicImg.style.border = "1px solid rgba(0,0,0,0.1)";
+        dynamicImg.textContent = q.imgText;
+        questionCounterSpan.textContent = `第 ${index+1} / ${distinguishQuestions.length} 题`;
+        distinguishTipSpan.innerHTML = "⚡ 哪一方的权力美学？点击下方选择 ⚡";
+        canAnswer = true;
+        chooseJadeBtn.disabled = false;
+        chooseDiamondBtn.disabled = false;
+        // 移除临时样式残留
+        chooseJadeBtn.style.opacity = '1';
+        chooseDiamondBtn.style.opacity = '1';
+    }
+
+    function handleAnswer(selectedType) {
+        if (!canAnswer) return;
+        const currentQ = distinguishQuestions[currentQuestionIndex];
+        const isCorrect = (selectedType === currentQ.answer);
+        if (isCorrect) {
+            correctAnswersCount++;
+            distinguishTipSpan.innerHTML = `✅ 正确！${currentQ.answer === 'jade' ? '青玉交龙纽玺' : '英国帝国皇冠'} 权力符号精准识别！ ✅`;
+        } else {
+            distinguishTipSpan.innerHTML = `❌ 辨识有误。该特征属于「${currentQ.answer === 'jade' ? '青玉交龙纽玺 · 东方礼制美学' : '英国帝国皇冠 · 钻石殖民霸权'}」 ❌`;
+        }
+        canAnswer = false;
+        chooseJadeBtn.disabled = true;
+        chooseDiamondBtn.disabled = true;
+        // 延迟进入下一题
+        setTimeout(() => {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < distinguishQuestions.length) {
+                loadQuestion(currentQuestionIndex);
+            } else {
+                // 显示结果按钮
+                toResultBtn.style.display = 'block';
+                distinguishTipSpan.innerHTML = `🏁 已完成全部 ${distinguishQuestions.length} 道辨识，点击「查看结果」解锁权力美学深度对照 🏁`;
+                chooseJadeBtn.disabled = true;
+                chooseDiamondBtn.disabled = true;
+            }
+        }, 1300);
+    }
+
+    // 重置所有状态
+    function fullReset() {
+        // 重置匹配计数
+        matchedJadeCount = 0;
+        matchedDiamondCount = 0;
+        currentQuestionIndex = 0;
+        correctAnswersCount = 0;
+        canAnswer = true;
+
+        // 重置UI 关卡1
+        buildInitialUI();
+        nextToLevel2Btn.style.display = 'none';
+        // 重置关卡2状态
+        toResultBtn.style.display = 'none';
+        chooseJadeBtn.disabled = false;
+        chooseDiamondBtn.disabled = false;
+        // 重置题目索引
+        currentQuestionIndex = 0;
+        correctAnswersCount = 0;
+        
+        // 重新加载关卡2第一题 (但此时level2隐藏, 等到切换时再加载)
+        // 切换显示层级
+        level1Div.classList.add('active');
+        level2Div.classList.remove('active');
+        resultDiv.style.display = 'none';
+        // 预加载题目索引重置后在进入第二关时重设
+        // 避免显示残留数据
+        if (distinguishQuestions.length > 0) {
+            // 预置正确索引
+            currentQuestionIndex = 0;
+            correctAnswersCount = 0;
+        }
+        // 清空提示样式
+        distinguishTipSpan.innerHTML = "✨ 根据器物特征，判断其权力美学归属 ✨";
+        const anyMsg = document.querySelector('.match-layout + div');
+        if(anyMsg && anyMsg.innerText.includes('属性匹配完成')) anyMsg.remove();
+    }
+
+    // 切换到关卡2时，重新初始化题目加载（保证每次从头开始）
+    function switchToLevel2() {
+        level1Div.classList.remove('active');
+        level2Div.classList.add('active');
+        resultDiv.style.display = 'none';
+        // 重置题目进度（避免之前残留）
+        currentQuestionIndex = 0;
+        correctAnswersCount = 0;
+        canAnswer = true;
+        toResultBtn.style.display = 'none';
+        // 重新加载题目
+        loadQuestion(0);
+    }
+
+    // 显示结果页
+    function showResult() {
+        level2Div.classList.remove('active');
+        resultDiv.style.display = 'block';
+        const total = distinguishQuestions.length;
+        const percent = Math.round((correctAnswersCount / total) * 100);
+        let message = `🎯 辨识关卡完成！正确率 ${correctAnswersCount}/${total} (${percent}%) 。`;
+        if (correctAnswersCount === total) {
+            message += " 完美洞察东西方权力符号基因！";
+        } else {
+            message += " 再玩一次加深权力美学记忆吧~";
+        }
+        const finalMsgSpan = document.getElementById('finalScoreMsg');
+        if (finalMsgSpan) finalMsgSpan.innerHTML = `✨ ${message} ✨<br> 玉与钻 · 权力表达殊途，文明对话永恒。`;
+        else document.querySelector('.result-desc').innerHTML = message;
+    }
+
+    // 事件绑定
+    nextToLevel2Btn.addEventListener('click', () => {
+        switchToLevel2();
+    });
+
+    toResultBtn.addEventListener('click', () => {
+        showResult();
+    });
+
+    chooseJadeBtn.addEventListener('click', () => {
+        if (!canAnswer) return;
+        handleAnswer('jade');
+    });
+
+    chooseDiamondBtn.addEventListener('click', () => {
+        if (!canAnswer) return;
+        handleAnswer('diamond');
+    });
+
+    restartBtn.addEventListener('click', () => {
+        fullReset();
+        // 额外重置匹配状态并且重置level2相关显示变量
+        // 确保再次进入关卡2时重新从0开始
+        currentQuestionIndex = 0;
+        correctAnswersCount = 0;
+        canAnswer = true;
+        toResultBtn.style.display = 'none';
+        // 如果结果页显示 确保隐藏
+        resultDiv.style.display = 'none';
+        level1Div.classList.add('active');
+        level2Div.classList.remove('active');
+        // 重置第二关提示和启用
+        chooseJadeBtn.disabled = false;
+        chooseDiamondBtn.disabled = false;
+        distinguishTipSpan.innerHTML = "✨ 根据器物特征，判断其权力美学归属 ✨";
+        // 清除可能遗留的禁用
+        loadQuestion(0); // 预加载不影响，但关卡2未激活，没关系下次切换时会重新调用switch
+        // 但需要确保switchToLevel2时会重新加载题目，并且清除索引，ok
+    });
+
+    // 初始化
+    buildInitialUI();
+    // 预加载第一道题背景（防止未激活时异常）
+    loadQuestion(0);
+</script>
+</body>
+</html>
